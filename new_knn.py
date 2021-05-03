@@ -2,8 +2,6 @@ import pandas as pd
 from tkinter import *
 from tkinter import ttk
 import numpy as np
-import random
-from collections import OrderedDict
 import math
 from tkinter import filedialog
 from configparser import ConfigParser
@@ -201,6 +199,8 @@ class Aplication(Frame):
         self.grid()
         self.create_widgets()
         self.zaladowany = False
+        self.new =True
+        self.czy_decydowac = False
 
     def proba(self):
         self.errors = ''
@@ -240,9 +240,13 @@ class Aplication(Frame):
                command=self.statystyka
                ).grid(row=11, column=0)
         Button(self,
-               text="Normalizuj klienta",
+               text="Dodaj klienta",
                command=self.n_klient
                ).grid(row=14, column=1)
+        Button(self,
+               text="Decyzja",
+               command=self.decyzja
+               ).grid(row=15, column=1)
 
         Radiobutton(self, text="Wariant 1", variable=self.choice, value="Wariant 1").grid(row=3, column=0, sticky=W)
         Radiobutton(self, text="Wariant 2", variable=self.choice, value="Wariant 2").grid(row=3, column=0, sticky=E)
@@ -290,13 +294,16 @@ class Aplication(Frame):
         self.skutecznosc = Text(self, width=20, height=1, wrap=CHAR)
         self.skutecznosc.grid(row=13, column=0)
         #-----------------------------------------------------------------
-        self.klient = Entry(self, width=100)
+        Label(self, text="Dane ").grid(row=14, column=0, sticky=W)
+        self.klient = Entry(self, width=87)
         self.klient.grid(row=14, column=0)
 
-        self.klient_znormalizowane = Text(self, width=75, height=1)
+        Label(self, text="Norm.").grid(row=15, column=0, sticky=W)
+        self.klient_znormalizowane = Text(self, width=65, height=1)
         self.klient_znormalizowane.grid(row=15, column=0)
 
-        self.klient_decyzja = Text(self, width=75, height=1)
+        Label(self, text="Decyzja").grid(row=16, column=0, sticky=W)
+        self.klient_decyzja = Text(self, width=65, height=1)
         self.klient_decyzja.grid(row=16, column=0)
 
     def knn(self):
@@ -307,62 +314,51 @@ class Aplication(Frame):
             self.wariant_2()
 
     def n_klient(self):
-        probka, k = 0, 0
-        metryka = self.metryka.get()
-        self.min_max={}
-        if self.message:
-            min = float(self.message[col].min())
-            max = float(self.message[col].max())
+        if self.new == True:
+            klient = self.klient.get()
+            dlugosc = self.col_num
+            # klient = 'a 12.63 2.64 y p aa v 0.32 t t 1 f g 0214 441'
+
+            klient= list(klient.split(' '))
+            if len(klient)==dlugosc-1:
+                klient.append('+')
+                new = len(self.message.index)
+                self.message.loc[new] = klient
+
+                self.nor = list(self.message.iloc[new])
+
+                self.klient_znormalizowane.delete(0.0,END)
+                self.klient_znormalizowane.insert(0.0,self.nor)
+                self.new = False
+                self.czy_decydowac=True
+            else:
+                self.klient_znormalizowane.delete(0.0, END)
+                self.klient_znormalizowane.insert(0.0, "błąd z danymi")
 
 
-        try:
-            k = int(self.take_k.get())
-        except:
-            pass
-        pr = list(self.message.iloc[probka])
+    def decyzja(self):
+        if self.czy_decydowac and self.ready:
+            k = 0
+            metryka = self.metryka.get()
+            try:
+                k = int(self.take_k.get())
+            except:
+                pass
+            wybor = self.choice.get()
+            probka = self.message.iloc[-1]
+            probka = probka.to_numpy()
+            set = self.message.to_numpy()
+            data_set=set[:-1,:]
+            print(data_set)
 
-        set = self.message.to_numpy()
-
-        klient = self.klient.get()
-        przedzial = self.norm.get()
-        klient= list(klient.split(' '))
-        dl = self.col_num-1
-        kolumny = self.res[0:dl]
-        probka = pd.DataFrame(klient, index=kolumny)
-        probka = probka.T
-
-        slow = self.dict_NA.copy()
-        slow.popitem()
-
-        probka = probka.astype(float)
-        for kolumna in probka.columns:
-
-            przedzial = list(slow[f'N{kolumna}'].split('-'))
-            od = float(przedzial[0])
-            do = float(przedzial[1])
-            min = float(self.message[kolumna].min())
-            max = float(self.message[kolumna].max())
-            probka[kolumna] = (probka[kolumna]-min) / (max-min)
-            probka[kolumna] *=(do - od) + od
-
-        wyn=[]
-        for x in probka.values:
-            wyn.append(x)
-        wyn.append(0)
-
-        wyn = wyn[0]
-        print(wyn)
-        pokaz = []
-        for x in wyn:
-            pokaz.append(x.round(2))
-
-        self.klient_znormalizowane.delete(0.0, END)
-        self.klient_znormalizowane.insert(0.0, pokaz)
-
-        odp = funkcja_wariant_1(wyn,set,k,metryka)
-
-        self.klient_decyzja.delete(0.0, END)
-        self.klient_decyzja.insert(0.0, odp)
+            if wybor == 'Wariant 1':
+                wyn = funkcja_wariant_1(probka,data_set,k,metryka)
+                self.klient_decyzja.delete(0.0, END)
+                self.klient_decyzja.insert(0.0, wyn)
+            elif wybor == 'Wariant 2':
+                wyn = funkcja_wariant_2(probka, data_set, k, metryka)
+                self.klient_decyzja.delete(0.0, END)
+                self.klient_decyzja.insert(0.0, wyn)
 
 #1 22.08 11.46 2 4 4 1.585 0 0 0 1 2 100 1213 0
     def statystyka(self):
@@ -468,19 +464,6 @@ class Aplication(Frame):
 
         self.klasyfikacja2.delete(0.0, END)
         self.klasyfikacja2.insert(0.0, wynik)
-
-    # def licz(self):
-    #     self.klasa = self.take_class.get()
-    #     self.klasa = int(self.klasa)
-    #     print(self.klasa)
-    #     self.k = int(self.take_k.get())
-    #     ok = self.check_k()
-    #     if ok:
-    #         self.wynik = sasiedzi(self.test, self.train, self.dl, self.k, self.klasa)
-    #         self.acc = fun(self.wynik, self.klasa)
-    #         print(self.acc)
-    #         self.result.delete(0.0, END)
-    #         self.result.insert(0.0, self.acc)
 
     def podziel_rowno(self, n):
         test = []
@@ -787,6 +770,12 @@ class Aplication(Frame):
                         self.result_mess = "bład normalizacji"
                 self.wynik.delete(0.0, END)
                 self.wynik.insert(0.0, self.message)
+                if self.new == False:
+                    self.klient_znormalizowane.delete(0.0, END)
+                    klient = list(self.message.iloc[-1])
+                    klient= [round(elem, 2) for elem in klient]
+                    self.klient_znormalizowane.insert(0.0, klient)
+
             else:
                 pass
 
