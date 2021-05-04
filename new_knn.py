@@ -6,6 +6,7 @@ import math
 from tkinter import filedialog
 from configparser import ConfigParser
 import operator
+from statistics import mode
 
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
@@ -317,11 +318,19 @@ class Aplication(Frame):
         if self.new == True:
             klient = self.klient.get()
             dlugosc = self.col_num
+            # klient = '1 22.08 11.46 2 4 4 1.585 0 0 0 1 2 100 1213'
+
             # klient = 'a 12.63 2.64 y p aa v 0.32 t t 1 f g 0214 441'
 
+            # klient = '1018561 2 1 2 1 2 1 3 1 1'
+
+
             klient= list(klient.split(' '))
+
+            print(klient)
             if len(klient)==dlugosc-1:
-                klient.append('+')
+                dec = self.message.iloc[0,-1]
+                klient.append(dec)
                 new = len(self.message.index)
                 self.message.loc[new] = klient
 
@@ -360,7 +369,7 @@ class Aplication(Frame):
                 self.klient_decyzja.delete(0.0, END)
                 self.klient_decyzja.insert(0.0, wyn)
 
-#1 22.08 11.46 2 4 4 1.585 0 0 0 1 2 100 1213 0
+
     def statystyka(self):
         wybor = self.choice.get()
         k = int(self.take_k.get())
@@ -641,8 +650,9 @@ class Aplication(Frame):
     def symbols(self, col):
         unique = []
         lista = []
-        top = self.message[col].max()
-        _ = self.message[col].replace('?', top, inplace=True)
+        top = self.message[col].mode()
+        x=top[0]
+        _ = self.message[col].replace('?', x, inplace=True)
 
         for x in self.message[col].values:
             lista.append(x)
@@ -654,7 +664,7 @@ class Aplication(Frame):
         slownik = {}
         dl = len(unique)
         for x in range(dl):
-            slownik[f"{unique[x]}"] = x
+            slownik[f"{unique[x]}"] = float(x)
 
         for key, value in slownik.items():
             _ = self.message[col].replace(key, value, inplace=True)
