@@ -1,7 +1,7 @@
 from tkinter import *
 import random
 
-
+     
 class Aplication(Frame):
     def __init__(self, master):
         super(Aplication, self).__init__(master)
@@ -39,7 +39,7 @@ class Aplication(Frame):
         podpowiedz = ""
         self.proby+=1
         if self.ansver.get() == str(self.var):
-            response = "Zgadza sie wynik to "+ str(self.var) + " udalo ci sie w " + str(self.proby)+ " próbach"
+            response = "Zgadza sie wynik toaaa "+ str(self.var) + " udalo ci sie w " + str(self.proby)+ " próbach"
         elif self.ansver.get() < str(self.var):
             podpowiedz = "Za mało "
             response = "Niepoprawna liczba"
