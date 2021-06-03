@@ -1,32 +1,46 @@
 from tkinter import *
+import os
+from graphviz import Digraph
+os.environ["PATH"] += os.pathsep + 'C:/Program Files/Graphviz/bin'
 
+dot = Digraph(comment='graf')
+disp = []
 lista = []
 score1= []
-
-def post_order(node):
+trasa=[]
+id =1
+def minmax(node):
     if not node.children:
-        return node.value
+        return node.end
 
     if node.player1:
-        maxEva = -44444
         score1 = []
         for child in node.children:
-            eva = post_order(child)
-            maxEva = max(maxEva,eva)
-            score1.append(eva)
+
+            result = minmax(child)
+            one = f'"prot;\\n {node.id} \\n value {node.value}"'
+
+            if result not in score1:
+                score1.append(result)
+            two = f'"ant;\\n {child.id} \\n value {child.value}" [label = "{child.data}"]'
+            disp.append(f" {one} -> {two}")
+        node.end=max(score1)
             # print(maxEva, "max - glebokosc", child.depth, child.player1)
-        print(max(score1)," maxy")
+        print(max(score1)," maxy ", f"glebokosc = {node.depth} , gracz1?{node.player1}", )
         return max(score1)
 
     else:
-        minEva = 999999
         score2 = []
         for child in node.children:
-            eva = post_order(child)
-            minEva = min(minEva, eva)
-            score2.append(eva)
-            # print(minEva, "min -  glebokosc", child.depth, child.player1)
-        print(min(score2)," minima")
+
+            result = minmax(child)
+            one = f'"ant;\\n {node.id} \\n value {node.value}"'
+            two = f'"prot;\\n {child.id} \\n value {child.value}" [label = "{child.data}"  color="red"]'
+            disp.append(f" {one} -> {two}")
+            if result not in score2:
+                score2.append(result)
+        node.end = min(score2)
+        print(min(score2), " minima ", f"glebokosc = {node.depth} , gracz1?{node.player1}", )
         return min(score2)
 
 
@@ -53,6 +67,9 @@ class Aplication(Frame):
         self.liczby = Entry(self)
         self.liczby.grid(row=1, column=1, sticky=W)
 
+        self.wynik = Text(self)
+        self.wynik.grid(row=4, columnspan=15, sticky=W)
+
         Label(self,
               ).grid(row=3, column=0, sticky=W)
 
@@ -72,8 +89,11 @@ class Aplication(Frame):
 
         root = build_product_tree()
         root.print_tree()
-        wynik = post_order(root)
-        print(wynik, "wunik")
+        wynik = minmax(root)
+        print(len(lista))
+        print(wynik, "wynik")
+
+        self.wynik.insert(0.0, disp)
 
 
 class TreeNode:
@@ -83,15 +103,21 @@ class TreeNode:
         self.data = value
         self.parent = None
         self.depth = 0
+        self.zmiany=""
         self.player1 = True
         self.end=False
+        self.id=0
 
     def add_child(self, child):
+        global id
         child.parent = self
         child.data = child.value
         child.value += self.value
 
+        child.id = id
+        id+=1
         self.children.append(child)
+
         child.depth = self.depth + 1
         if self.player1:
             child.player1 = False
@@ -129,12 +155,12 @@ class TreeNode:
                 self.end=1
             else:
                 self.end=-1
-            print("Przegrana", "Protagonista" if self.get_level() % 2 == 0 else "Antagonista")
+            # print("Przegrana", "Protagonista" if self.get_level() % 2 == 0 else "Antagonista")
         elif (self.value == Aplication.WIN):
             self.end=0
             print("Remis")
 
-        print("   " * self.depth, f"głębokość - {self.depth}, value {self.value} - gracz ||{self.player1}")
+        print(self.id, "   " * self.depth, f"głębokość - {self.depth}, value {self.value} - gracz ||{self.player1}")
         if self.children:
             for child in self.children:
                 child.print_tree()
@@ -165,21 +191,6 @@ def build_product_tree():
 
 app = Tk()
 app.title("Aplikacja")
-app.geometry("300x80")
+app.geometry("600x220")
 app = Aplication(app)
 app.mainloop()
-
-# def minmax(self):
-#     if not self:
-#         return []
-#     stack = [self]
-#     last = None
-#     while stack:
-#         self = stack[-1]
-#         if not self.children or last and (last in self.children):
-#             print(self.value)
-#             stack.pop()
-#             last = self
-#         else:
-#             for child in self.children[::-1]:
-#                 stack.append(child)
