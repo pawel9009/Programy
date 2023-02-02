@@ -455,36 +455,6 @@ class Aplication(Frame):
         self.result.delete(0.0, END)
         self.result.insert(0.0, self.result_mess)
 
-    # def sprawdz(self, col):
-    #
-    #     if self.zaladowany and self.ready:
-    #         try:
-    #
-    #             _ = pd.DataFrame(self.message)
-    #             self.praw = ast.literal_eval(self.d[col])
-    #
-    #             _ = _[col].replace(self.praw, inplace=True)
-    #
-    #             self.result_mess = "halo :)"
-    #         except:
-    #             self.result_mess = "Tduadsda"
-    #     else:
-    #         self.result_mess = "Najpierw załaduj plik"
-
-    # def check_wczytaj(self):
-    #     ilosc_wierszy = self.message.index.shape[0]
-    #     ilosc_kolumn = self.message.columns.shape[0]
-    #     self.result_mess = ""
-    #     if ilosc_wierszy != self.row:
-    #         self.zaladowany = False
-    #         self.result_mess = "błędna ilosc wierszy\n"
-    #     if ilosc_kolumn != self.col_num:
-    #         self.zaladowany = False
-    #         self.result_mess += "błędna ilosc kolumn "
-    #
-    #     self.result.delete(0.0, END)
-    #     self.result.insert(0.0, self.result_mess)
-
     def onclick(self):
         self.message = ""
         self.result_mess = ""
